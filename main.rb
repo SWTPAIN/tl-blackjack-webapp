@@ -8,6 +8,16 @@ DEALER_HIT_MIN = 17
 
 
 helpers do
+
+  def valid_bet? (amount)
+    if amount.is_a?(Numeric) && amount<=session[:player_money]
+      true
+    else
+      @error = "Your bet amount must be positive or larger than your held money"
+      false
+    end
+  end
+
   def calculate_total(cards)
     arr = cards.map{|element| element[1]}
 
@@ -100,8 +110,12 @@ get '/bet' do
 end
 
 post '/bet' do
-  session[:bet_amount]=params[:bet_amount].to_i
-  redirect '/game'
+  if valid_bet? params[:bet_amount]
+    session[:bet_amount]=params[:bet_amount].to_i
+    redirect '/game'
+  else
+    erb :bet
+  end
 end
 
 get '/game' do

@@ -45,19 +45,23 @@ helpers do
   end
 
   def winner!(msg)
-    @success = "Congratulations! #{msg} "
+    session[:player_money]+=session[:bet_amount]
+    @success = "Congratulations! #{msg} #{session[:player_name]} now has $#{session[:player_money]}"
     @show_hit_or_stay_buttons = false
     @gameover = true
+
   end
 
   def losser!(msg)
-    @error = "Sorry, #{msg}"
+    session[:player_money]-=session[:bet_amount]
+    @error = "Sorry, #{msg} #{session[:player_name]} now has $#{session[:player_money]}"
     @show_hit_or_stay_buttons = false
     @gameover = true
+    session[:player_money]-=session[:bet_amount]
   end
 
   def tier!(msg)
-    @error = "#{msg}"
+    @error = "#{msg} #{session[:player_name]} now has $#{session[:player_money]}"
     @show_hit_or_stay_buttons = false
     @gameover = true
   end
@@ -76,6 +80,7 @@ get '/' do
 end
 
 get '/new_player' do
+  session[:player_money] = 500
   erb :new_player
 end
 
@@ -87,6 +92,15 @@ post '/new_player' do
   end
 
   session[:player_name] = params[:player_name]
+  redirect '/bet'
+end
+
+get '/bet' do
+  erb :bet
+end
+
+post '/bet' do
+  session[:bet_amount]=params[:bet_amount].to_i
   redirect '/game'
 end
 
@@ -138,7 +152,7 @@ get '/game/dealer' do
   if dealer_total == BLACKJACK_AMOUNT
     winner!("#{session[:player_name]} hit blackjack.")
   elsif dealer_total > BLACKJACK_AMOUNT
-    losser!("it look like #{session[:player_name]} are busted")
+    losser!("it look like #{session[:player_name]} are busted.")
   elsif dealer_total >= DEALER_HIT_MIN
     redirect "/game/compare"
   else
@@ -159,14 +173,14 @@ get '/game/compare' do
   @show_hit_or_stay_buttons = false
   player_total = calculate_total(session[:player_cards])
   dealer_total = calculate_total(session[:dealer_cards])
-  result = "#{session[:player_name]} stay at #{player_total} and the dealer stay at #{dealer_total}."
+  result = "#{session[:player_name]} stay at #{player_total} and the dealer stay at #{dealer_total}.  "
   if dealer_total > player_total
-    losser!("#{result} #{session[:player_name]} lose")
+    losser!("#{result} #{session[:player_name]} lose. " )
   elsif dealer_total < player_total
-    winner!("#{result} #{session[:player_name]} win")
+    winner!("#{result} #{session[:player_name]} win.")
 
   else
-    tier!("#{result} It is a tie." )
+    tier!("#{result} It is a tie. " )
   end
 
   erb :game

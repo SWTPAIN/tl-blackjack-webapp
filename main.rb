@@ -9,13 +9,8 @@ DEALER_HIT_MIN = 17
 
 helpers do
 
-  def valid_bet? (amount)
-    if amount.is_a?(Numeric) && amount<=session[:player_money]
-      true
-    else
-      @error = "Your bet amount must be positive or larger than your held money"
-      false
-    end
+  def is_numeric? (obj)
+    true if Float(obj) rescue false
   end
 
   def calculate_total(cards)
@@ -67,7 +62,6 @@ helpers do
     @error = "Sorry, #{msg} #{session[:player_name]} now has $#{session[:player_money]}"
     @show_hit_or_stay_buttons = false
     @gameover = true
-    session[:player_money]-=session[:bet_amount]
   end
 
   def tier!(msg)
@@ -110,10 +104,11 @@ get '/bet' do
 end
 
 post '/bet' do
-  if valid_bet? params[:bet_amount]
-    session[:bet_amount]=params[:bet_amount].to_i
+  if is_numeric?(params[:bet_amount]) && params[:bet_amount].to_f<=session[:player_money]
+    session[:bet_amount]=params[:bet_amount].to_f
     redirect '/game'
   else
+    @error = "Your bet amount must be positive or larger than your held money"
     erb :bet
   end
 end

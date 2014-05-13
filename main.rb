@@ -51,7 +51,7 @@ helpers do
 
   def winner!(msg)
     session[:player_money]+=session[:bet_amount]
-    @success = "Congratulations! #{msg} #{session[:player_name]} now has $#{session[:player_money]}"
+    @winner = "Congratulations! #{msg} #{session[:player_name]} now has $#{session[:player_money]}"
     @show_hit_or_stay_buttons = false
     @gameover = true
 
@@ -59,13 +59,13 @@ helpers do
 
   def losser!(msg)
     session[:player_money]-=session[:bet_amount]
-    @error = "Sorry, #{msg} #{session[:player_name]} now has $#{session[:player_money]}"
+    @losser = "Sorry, #{msg} #{session[:player_name]} now has $#{session[:player_money]}"
     @show_hit_or_stay_buttons = false
     @gameover = true
   end
 
   def tier!(msg)
-    @error = "#{msg} #{session[:player_name]} now has $#{session[:player_money]}"
+    @losser = "#{msg} #{session[:player_name]} now has $#{session[:player_money]}"
     @show_hit_or_stay_buttons = false
     @gameover = true
   end
@@ -104,12 +104,12 @@ get '/bet' do
 end
 
 post '/bet' do
-  if is_numeric?(params[:bet_amount]) && params[:bet_amount].to_f<=session[:player_money]
+  if params[:bet_amount].to_f<=session[:player_money] && params[:bet_amount].to_f > 0
     session[:bet_amount]=params[:bet_amount].to_f
     redirect '/game'
   else
     @error = "Your bet amount must be positive or larger than your held money"
-    erb :bet
+    halt erb :bet
   end
 end
 
@@ -143,7 +143,7 @@ post '/game/player/hit' do
   elsif player_total > BLACKJACK_AMOUNT
     losser!("it look like #{session[:player_name]} are busted")
   end
-  erb :game
+  erb :game , layout: false
 end
 
 post '/game/player/stay' do
@@ -159,20 +159,19 @@ get '/game/dealer' do
   dealer_total = calculate_total session[:dealer_cards]
 
   if dealer_total == BLACKJACK_AMOUNT
-    winner!("#{session[:player_name]} hit blackjack.")
+    losser!("The dealer hit blackjack.")
   elsif dealer_total > BLACKJACK_AMOUNT
-    losser!("it look like #{session[:player_name]} are busted.")
+    winner!("it look like #{session[:player_name]} are busted.")
   elsif dealer_total >= DEALER_HIT_MIN
     redirect "/game/compare"
   else
     @dealer_hit = true
   end
 
-  erb :game
+  erb :game, layout: false
 end
 
-get '/game/dealer/hit' do
-  @show_hit_or_stay_buttons = false
+post '/game/dealer/hit' do
   session[:dealer_cards] << session[:deck].pop
   redirect '/game/dealer'
 

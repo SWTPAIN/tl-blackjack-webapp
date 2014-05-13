@@ -1,5 +1,7 @@
 <div id='game'>
 
+<div id='card_display'>
+
 <div class="container">
   <%if @losser%>
     <div class="alert alert-error"><%=@losser%></div>
@@ -9,8 +11,9 @@
   <% end %>
 </div>
 
-<h1>Blackjack!</h1>
-<p>Welcome <%= session[:player_name] %> </p>
+<h1 align="middle">Blackjack!</h1>
+
+<h4><%= session[:player_name] %> bet $<%=session[:bet_amount] %> and has $<%= session[:player_money] %> left </h4>
 
 <% if @gameover %>
   <p>
@@ -40,27 +43,26 @@
 </br>
 
 <div class="well" id='player_area'>
-  <h3><%= session[:player_name]%>'s cards:<h3>
+  <h3><%= session[:player_name]%>'s cards: (total point <%= calculate_total session[:player_cards] %>)<h3>
     <% session[:player_cards].each do |card| %>
       <%= card_img(card) %>
     <% end %>
-  <h4>
-    <%= session[:player_name] %> has $<%= session[:player_money]%> and bet $<%= session[:bet_amount] %> this round.
-  </h4>
+
+  </br>
+  <div class="btn-group">
+  <% if @show_hit_or_stay_buttons %>
+    <h4> <%= "What would #{session[:player_name]} like to do?" %> </h4>
+    <form id='hit_form'action="/game/player/hit" method="post">
+      <input type='submit' value='Hit' class='btn btn-success'>
+    </form>
+
+    <form id='stay_form' action="/game/player/stay" method="post">
+      <input type='submit' value='Stay' class='btn btn-warning'>
+    </form>
+  <% end %>
+  </div>
 </div>
 </br>
-
-<%= session[:player_name]%>'s total point <%= calculate_total session[:player_cards] %>
-<p> <%= "What would #{session[:player_name]} like to do?" %> </p>
-
-<% if @show_hit_or_stay_buttons %>
-  <form id='hit_form'action="/game/player/hit" method="post">
-    <input type='submit' value='Hit' class='btn btn-primary'>
-  </form>
-
-  <form id='stay_form' action="/game/player/stay" method="post">
-    <input type='submit' value='Stay' class='btn btn-warning'>
-  </form>
-<% end %>
+</div>
 
 </div>
